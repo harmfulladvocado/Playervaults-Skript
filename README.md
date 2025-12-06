@@ -1,4 +1,6 @@
 # Playervaults-Skript
+[Spigot page](https://www.spigotmc.org/resources/playervaults.128507/)
+
 
 A flexible, user-friendly Skript-based **player vaults system** for Minecraft servers (compatible with 1.21.4–1.21.6 and any version where Skript & SkBee work).  
 **Create, manage, and secure personal vaults with custom size and permissions, directly in-game!**
@@ -7,7 +9,7 @@ A flexible, user-friendly Skript-based **player vaults system** for Minecraft se
 
 ## 💡 What Is It?
 
-**Playervaults-Skript** is a Skript replacement for the well-loved [PlayerVaults plugin](https://www.spigotmc.org/resources/playervaults.128507/), letting your players store their items safely in private virtual chests ("vaults") accessed via command.  
+**Playervaults-Skript** is a Skript replacement for the well-loved Playervaults Plugin, letting your players store their items safely in private virtual chests ("vaults") accessed via command.  
 All messages, vault names, and prompts use a small-caps unicode font for style and readability.
 
 ---
@@ -84,7 +86,7 @@ You can easily customize blocked items by editing the relevant list at the top o
 
 ## ✅ Confirmed Working
 
-Tested on **Minecraft 1.21.4+** (should work on any recent version supporting Skript & SkBee).  
+Tested on **Minecraft 1.21.x** (should work on any recent version supporting Skript & SkBee).  
 No resource pack or custom jars required—fully open source!
 
 ---
