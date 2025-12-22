@@ -1,111 +1,58 @@
 # =====================================
 # PlayerVaults
-# Skript + Skbee
-# made by hrmfulladvocado
 # =====================================
 
-#permissions:
-#playervaults.amount.<the amount you want>
-#playervaults.admin
+options:
+    MaxVaults: 1000
+    NoPermMsg: &cYou don't have permission for this vault.
+    HelpMsg: &cUse /pv <number> to open a vault.
+    AdminHelpMsg: &cUse /pvadmin <player> <number> to open another player's vault.
+    BlockedError: &cYou cannot store this item in a vault.
 
-# ---------- BLOCKED ITEMS ----------
-on load:
-    clear {blockedItems::*}
-    add bedrock to {blockedItems::*}
-    add command block to {blockedItems::*}
-    add spawner to {blockedItems::*}
-    add barrier to {blockedItems::*}
+# ---------- MAX VAULT CHECK ----------
+function getMax(p:player) :: number:
+    set {_max} to 0
+    loop {@MaxVaults} times:
+        set {_i} to loop-number
+        if {_p} has permission "playervaults.amount.%{_i}%":
+            set {_max} to {_i}
+    if {_p} has permission "playervaults.admin":
+        return {@MaxVaults}
+    return {_max}
 
-# ---------- PLAYER VAULT COMMAND ----------
-command /pv [<number=1>] [<player>]:
-    aliases: /playervault
-    permission: playervaults.use
-    usage: &7&l/pv <amount> (<player> staff only)
-    trigger:
-        set {_vault} to arg-1
-        if {_vault} < 1:
-            send "&7&lsᴍᴀʟʟᴇsᴛ ᴠᴀᴜʟᴛ ɴᴜᴍʙᴇʀ ɪs 1." to player
-            stop
 
-        if arg-2 is set:
-            if player does not have permission "playervaults.admin":
-                send "&7&lyᴏᴜ ᴅᴏɴ'ᴛ ʜᴀᴠᴇ ᴘᴇʀᴍɪssɪᴏɴ ᴛᴏ ᴏᴘᴇɴ ᴏᴛʜᴇʀ ᴘʟᴀʏᴇʀs' ᴠᴀᴜʟᴛs." to player
-                stop
-            set {_target} to arg-2
-        else:
-            set {_target} to player
+function openVault(p:player, target:player, n:number):
+    set {_tu} to uuid of {_target}
+    set {_max} to getMax({_target})
 
-        if player has permission "playervaults.admin":
-            set {_max} to 1000
-        else:
-            set {_max} to 0
-            loop 1000 times:
-                if {_target} has permission "playervaults.amount.%loop-number%":
-                    set {_max} to loop-number
+    if {_n} > {_max}:
+        send "{@NoPermMsg}" to {_p}
+        stop
 
-        if {_max} is 0:
-            send "&7&lyᴏᴜ ʜᴀᴠᴇ ɴᴏ ᴘᴇʀᴍɪssɪᴏɴ ғᴏʀ ᴀɴʏ ᴠᴀᴜʟᴛs." to player
-            stop
-        if {_vault} > {_max}:
-            send "&7&lyᴏᴜ ᴄᴀɴ ᴏɴʟʏ ᴜsᴇ ᴜᴘ ᴛᴏ %{_max}% ᴠᴀᴜʟᴛ(s)." to player
-            stop
+    set {_title} to "&7Vault %{_n}%" 
 
-        set {_uuid} to uuid of {_target}
+    set {openvault::%uuid of {_p}%::number} to {_n}
+    set {openvault::%uuid of {_p}%::target} to {_tu}
 
-        if {_target} is player:
-            set {_title} to "&7&lᴠᴀᴜʟᴛ %{_vault}%"
-        else:
-            set {_title} to "&7&lᴠᴀᴜʟᴛ %{_vault}% &7(%name of {_target}%)"
-
-        set {_inv} to chest inventory with 6 rows named {_title}
-
-        loop 54 times:
-            if {vault::%{_uuid}%::%{_vault}%::%loop-number%} is set:
-                set slot (loop-number - 1) of {_inv} to {vault::%{_uuid}%::%{_vault}%::%loop-number%}
-
-        set {openvault::%player%::uuid} to {_uuid}
-        set {openvault::%player%::number} to {_vault}
-
-        open {_inv} to player
-        send "&7&lᴏᴘᴇɴɪɴɢ Vᴀᴜʟᴛ %{_vault}%"
-
-# ---------- SAVE VAULT FUNCTION ----------
-
-function saveVault(p: player, inv: inventory):
-    set {_uuid} to {openvault::%{_p}%::uuid}
-    set {_vault} to {openvault::%{_p}%::number}
-
-    delete {vault::%{_uuid}%::%{_vault}%::*}
+    open chest inventory with 6 rows named {_title} to {_p}
+    set {_inv} to {_p}'s current inventory
 
     loop 54 times:
-        set {_item} to slot (loop-number - 1) of {_inv}
+        set {_slot} to loop-number - 1
+        if {vaultdata::%{_tu}%::%{_n}%::%loop-number%} is set:
+            set slot {_slot} of {_inv} to {vaultdata::%{_tu}%::%{_n}%::%loop-number%}
+
+
+function saveVault(p:player, inv:inventory):
+    set {_pu} to uuid of {_p}
+    set {_n} to {openvault::%{_pu}%::number}
+    set {_tu} to {openvault::%{_pu}%::target}
+
+    delete {vaultdata::%{_tu}%::%{_n}%::*}
+
+    loop 54 times:
+        set {_slot} to loop-number - 1
+        set {_item} to slot {_slot} of {_inv}
+
         if {_item} is not air:
-            set {_type} to type of {_item}
-            if {_type} is in {blockedItems::*}:
-                if {_p}'s inventory has space for {_item}:
-                    give {_item} to {_p}
-                send "&7&lyᴏᴜ ᴄᴀɴ'ᴛ sᴛᴏʀᴇ %{_item}% ɪɴ ᴀ ᴠᴀᴜʟᴛ!" to {_p}
-            else:
-                set {vault::%{_uuid}%::%{_vault}%::%loop-number%} to {_item}
-
-# ---------- SAVE TRIGGERS ----------
-on inventory click:
-    if name of event-inventory contains "ᴠᴀᴜʟᴛ ":
-        wait 1 tick
-        saveVault(player, event-inventory)
-
-on inventory drag:
-    if name of event-inventory contains "ᴠᴀᴜʟᴛ ":
-        wait 1 tick
-        saveVault(player, event-inventory)
-
-on inventory close:
-    if name of event-inventory contains "ᴠᴀᴜʟᴛ ":
-        saveVault(player, event-inventory)
-        delete {openvault::%player%::*}
-
-# ---------- TAB COMPLETION ----------
-on tab complete of "/pv" and "/playervault":
-    set tab completions for position 1 to "1", "2", "3", "4", "5", "6", "7", "8" and "9"
-    if player has permission "playervaults.admin":
-        set tab completions for position 2 to all players
+            set {vaultdata::%{_tu}%::%{_n}%::%loop-number%} to {_item}
