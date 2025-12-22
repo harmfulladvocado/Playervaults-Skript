@@ -95,7 +95,6 @@ No resource pack or custom jars required—fully open source!
 
 - Skript by [hrmfulladvocado](https://github.com/harmfulladvocado)
 - [PlayerVaults plugin resource](https://www.spigotmc.org/resources/playervaults.128507/)
-- *You may edit and adapt this Skript for your server, just please keep the credits at the top!*
 
 ---
 
